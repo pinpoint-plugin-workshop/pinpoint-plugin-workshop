@@ -1,0 +1,9 @@
+serviceTypes:
+    - code: 9055
+      name: 'JDK_HTTPURLCONNECTOR'
+      desc: 'JDK_HTTPCONNECTOR'
+      property:
+          recordStatistics: true
+      matcher:
+          type: 'exact'
+          code: 40 # http.url

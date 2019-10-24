@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pinpoint.workshop.pizza.oven.mapper.OrderMapper">
+
+    <insert id="insertPizzaOrder" parameterType="PizzaOrder">
+INSERT INTO pizza.order (order_id, customer_name, order_quantity)
+VALUES (#{orderId}, #{customerName}, #{orderQuantity})
+    </insert>
+</mapper>

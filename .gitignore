@@ -1,0 +1,28 @@
+# Maven
+deploy/
+target/
+
+# Eclipse
+.classpath
+.project
+.settings/
+/.externalToolBuilders
+/build
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+/.idea/
+out/
+
+# vscode
+.vscode
+
+# npm
+node_install/
+node_modules/
+jsdoc/
+
+#mac
+.DS_Store

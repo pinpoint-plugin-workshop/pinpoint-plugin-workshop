@@ -1,0 +1,20 @@
+flush 'AgentInfo'
+flush 'AgentStatV2'
+flush 'ApplicationStatAggre'
+
+flush 'AgentLifeCycle'
+flush 'AgentEvent'
+flush 'ApplicationIndex'
+
+flush 'StringMetaData'
+flush 'ApiMetaData'
+
+flush 'SqlMetaData_Ver2'
+
+flush 'ApplicationMapStatisticsCaller_Ver2'
+flush 'ApplicationMapStatisticsCallee_Ver2'
+flush 'ApplicationMapStatisticsSelf_Ver2'
+
+flush 'HostApplicationMap_Ver2'
+
+exit

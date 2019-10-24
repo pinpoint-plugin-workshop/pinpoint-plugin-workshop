@@ -1,0 +1,251 @@
+/*
+ * Copyright 2014 NAVER Corp.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.navercorp.pinpoint.web.applicationmap.histogram;
+
+import com.navercorp.pinpoint.common.trace.HistogramSchema;
+import com.navercorp.pinpoint.common.trace.HistogramSlot;
+import com.navercorp.pinpoint.common.trace.ServiceType;
+import com.navercorp.pinpoint.common.trace.SlotType;
+import com.navercorp.pinpoint.web.view.HistogramSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+/**
+ * @author emeroad
+ * @author netspider
+ */
+@JsonSerialize(using = HistogramSerializer.class)
+public class Histogram {
+
+    private final HistogramSchema schema;
+
+    private long fastCount;
+    private long normalCount;
+    private long slowCount;
+    private long verySlowCount;
+    private long errorCount; // for backward compatibility.
+    private long fastErrorCount;
+    private long normalErrorCount;
+    private long slowErrorCount;
+    private long verySlowErrorCount;
+
+    public Histogram(ServiceType serviceType) {
+        if (serviceType == null) {
+            throw new NullPointerException("serviceType must not be null");
+        }
+        this.schema = serviceType.getHistogramSchema();
+    }
+
+    public Histogram(HistogramSchema schema) {
+        if (schema == null) {
+            throw new NullPointerException("schema must not be null");
+        }
+        this.schema = schema;
+    }
+
+    public void addCallCountByElapsedTime(int elapsedTime, boolean error) {
+        final HistogramSlot histogramSlot = this.schema.findHistogramSlot(elapsedTime, error);
+        short slotTime = histogramSlot.getSlotTime();
+        addCallCount(slotTime, 1);
+    }
+
+    // TODO one may extract slot number from this class
+    public void addCallCount(final short slotTime, final long count) {
+        final HistogramSchema schema = this.schema;
+
+        if (slotTime <= schema.getVerySlowErrorSlot().getSlotTime()) {
+            this.verySlowErrorCount += count;
+            return;
+        }
+
+        if (slotTime <= schema.getSlowErrorSlot().getSlotTime()) {
+            this.slowErrorCount += count;
+            return;
+        }
+
+
+        if (slotTime <= schema.getNormalErrorSlot().getSlotTime()) {
+            this.normalErrorCount += count;
+            return;
+        }
+
+        if (slotTime <= schema.getFastErrorSlot().getSlotTime()) {
+            this.fastErrorCount += count;
+            return;
+        }
+
+        if (slotTime <= schema.getErrorSlot().getSlotTime()) {
+            this.errorCount += count;
+            return;
+        }
+
+        if (slotTime == schema.getVerySlowSlot().getSlotTime()) { // 0 is slow slotTime
+            this.verySlowCount += count;
+            return;
+        }
+
+        if (slotTime <= schema.getFastSlot().getSlotTime()) {
+            this.fastCount += count;
+            return;
+        }
+
+        if (slotTime <= schema.getNormalSlot().getSlotTime()) {
+            this.normalCount += count;
+            return;
+        }
+
+        if (slotTime <= schema.getSlowSlot().getSlotTime()) {
+            this.slowCount += count;
+            return;
+        }
+
+        throw new IllegalArgumentException("slot not found slotTime=" + slotTime + ", count=" + count + ", schema=" + schema);
+    }
+
+    public HistogramSchema getHistogramSchema() {
+        return this.schema;
+    }
+
+    public long getTotalErrorCount() {
+        return errorCount + fastErrorCount + normalErrorCount + slowErrorCount + verySlowErrorCount;
+    }
+
+    public long getErrorCount() {
+        return errorCount;
+    }
+
+    public long getFastCount() {
+        return fastCount;
+    }
+
+    public long getFastErrorCount() {
+        return fastErrorCount;
+    }
+
+    public long getNormalCount() {
+        return normalCount;
+    }
+
+    public long getNormalErrorCount() {
+        return normalErrorCount;
+    }
+
+    public long getSlowCount() {
+        return slowCount;
+    }
+
+    public long getSlowErrorCount() {
+        return slowErrorCount;
+    }
+
+    public long getVerySlowCount() {
+        return verySlowCount;
+    }
+
+    public long getVerySlowErrorCount() {
+        return verySlowErrorCount;
+    }
+
+    public long getTotalCount() {
+        return errorCount + fastCount + fastErrorCount + normalCount + normalErrorCount + slowCount + slowErrorCount + verySlowCount + verySlowErrorCount;
+    }
+
+    public long getSuccessCount() {
+        return fastCount + normalCount + slowCount + verySlowCount;
+    }
+
+    public long getCount(SlotType slotType) {
+        if (slotType == null) {
+            throw new NullPointerException("slotType must not be null");
+        }
+
+        switch (slotType) {
+            case FAST:
+                return fastCount;
+            case FAST_ERROR:
+                return fastErrorCount;
+            case NORMAL:
+                return normalCount;
+            case NORMAL_ERROR:
+                return normalErrorCount;
+            case SLOW:
+                return slowCount;
+            case SLOW_ERROR:
+                return slowErrorCount;
+            case VERY_SLOW:
+                return verySlowCount;
+            case VERY_SLOW_ERROR:
+                return verySlowErrorCount;
+            case ERROR:
+                // for backward compatibility.
+                return errorCount + fastErrorCount + normalErrorCount + slowErrorCount + verySlowErrorCount;
+        }
+        throw new IllegalArgumentException("slotType:" + slotType);
+    }
+
+    public void add(final Histogram histogram) {
+        if (histogram == null) {
+            throw new NullPointerException("histogram must not be null");
+        }
+        if (this.schema != histogram.schema) {
+            throw new IllegalArgumentException("schema not equals. this=" + this + ", histogram=" + histogram);
+
+        }
+        this.errorCount += histogram.getErrorCount();
+        this.fastCount += histogram.getFastCount();
+        this.fastErrorCount += histogram.getFastErrorCount();
+        this.normalCount += histogram.getNormalCount();
+        this.normalErrorCount += histogram.getNormalErrorCount();
+        this.slowCount += histogram.getSlowCount();
+        this.slowErrorCount += histogram.getSlowErrorCount();
+        this.verySlowCount += histogram.getVerySlowCount();
+        this.verySlowErrorCount += histogram.getVerySlowErrorCount();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Histogram histogram = (Histogram) o;
+
+        if (schema != histogram.schema) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return schema.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Histogram{");
+        sb.append("schema=").append(schema);
+        sb.append(", fastCount=").append(fastCount);
+        sb.append(", normalCount=").append(normalCount);
+        sb.append(", slowCount=").append(slowCount);
+        sb.append(", verySlowCount=").append(verySlowCount);
+        sb.append(", errorCount=").append(errorCount);
+        sb.append(", fastErrorCount=").append(fastErrorCount);
+        sb.append(", normalErrorCount=").append(normalErrorCount);
+        sb.append(", slowErrorCount=").append(slowErrorCount);
+        sb.append(", verySlowErrorCount=").append(verySlowErrorCount);
+        sb.append('}');
+        return sb.toString();
+    }
+}
