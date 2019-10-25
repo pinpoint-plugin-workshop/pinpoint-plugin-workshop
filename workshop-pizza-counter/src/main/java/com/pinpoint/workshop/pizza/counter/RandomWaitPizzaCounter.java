@@ -8,15 +8,16 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author HyunGil Jeong
  */
-public class RandomPizzaCounter implements PizzaCounter {
+public class RandomWaitPizzaCounter implements PizzaCounter {
 
-    private static final int MAX_WAIT_TIME_SECONDS = 5;
+    private static final long MIN_WAIT_TIME_MS = 100;
+    private static final long MAX_WAIT_TIME_MS = 3000;
 
     public UUID waitInLine(String customerName) throws CounterClosedException {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        int waitTime = random.nextInt(MAX_WAIT_TIME_SECONDS + 1);
+        long waitTimeMs = random.nextLong(MAX_WAIT_TIME_MS - MIN_WAIT_TIME_MS) + MIN_WAIT_TIME_MS;
         try {
-            Thread.sleep(waitTime);
+            Thread.sleep(waitTimeMs);
         } catch (InterruptedException e) {
             // counter closed!
             Thread.currentThread().interrupt();
