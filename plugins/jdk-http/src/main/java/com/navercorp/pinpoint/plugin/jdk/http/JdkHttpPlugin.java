@@ -16,14 +16,20 @@
 
 package com.navercorp.pinpoint.plugin.jdk.http;
 
+import com.navercorp.pinpoint.bootstrap.instrument.InstrumentClass;
+import com.navercorp.pinpoint.bootstrap.instrument.InstrumentException;
+import com.navercorp.pinpoint.bootstrap.instrument.InstrumentMethod;
+import com.navercorp.pinpoint.bootstrap.instrument.Instrumentor;
 import com.navercorp.pinpoint.bootstrap.instrument.transformer.TransformCallback;
 import com.navercorp.pinpoint.bootstrap.instrument.transformer.TransformTemplate;
 import com.navercorp.pinpoint.bootstrap.instrument.transformer.TransformTemplateAware;
 import com.navercorp.pinpoint.bootstrap.plugin.ProfilerPlugin;
 import com.navercorp.pinpoint.bootstrap.plugin.ProfilerPluginSetupContext;
+import com.navercorp.pinpoint.plugin.jdk.http.interceptor.HttpURLConnectionConnectInterceptor;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.security.ProtectionDomain;
 
 /**
  * Implementation of {@code ProfilerPlugin} to allow bytecode instrumentation of JDK's {@code HttpURLConnection}.
@@ -47,6 +53,19 @@ public class JdkHttpPlugin implements ProfilerPlugin, TransformTemplateAware {
     @Override
     public void setup(ProfilerPluginSetupContext context) {
         // TODO implement
+        transformTemplate.transform("sun.net.www.protocol.http.HttpURLConnection", HttpURLConnectionTransformCallback.class);
+    }
+
+    public static class HttpURLConnectionTransformCallback implements TransformCallback {
+        @Override
+        public byte[] doInTransform(Instrumentor instrumentor, ClassLoader classLoader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws InstrumentException {
+            InstrumentClass instrumentClass = instrumentor.getInstrumentClass(classLoader, className, classfileBuffer);
+
+            InstrumentMethod connectMethod = instrumentClass.getDeclaredMethod("connect");
+            connectMethod.addInterceptor(HttpURLConnectionConnectInterceptor.class);
+
+            return instrumentClass.toBytecode();
+        }
     }
 
     @Override
