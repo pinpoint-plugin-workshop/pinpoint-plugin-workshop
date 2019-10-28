@@ -16,12 +16,29 @@
 
 package com.navercorp.pinpoint.plugin.jdk.http;
 
+import com.navercorp.pinpoint.bootstrap.instrument.transformer.TransformCallback;
 import com.navercorp.pinpoint.bootstrap.instrument.transformer.TransformTemplate;
 import com.navercorp.pinpoint.bootstrap.instrument.transformer.TransformTemplateAware;
 import com.navercorp.pinpoint.bootstrap.plugin.ProfilerPlugin;
 import com.navercorp.pinpoint.bootstrap.plugin.ProfilerPluginSetupContext;
 
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.Instrumentation;
+
 /**
+ * Implementation of {@code ProfilerPlugin} to allow bytecode instrumentation of JDK's {@code HttpURLConnection}.
+ * <p>
+ * The main purpose of this class is to define {@link TransformCallback} for JDK's
+ * {@link sun.net.www.protocol.http.HttpURLConnection HttpURLConnection}, so that we can inject pinpoint interceptors
+ * and other relevant code into the {@code HttpURLConnection} class.
+ * <p>
+ * Once defined, the {@code TransformCallback} is wrapped into a {@link ClassFileTransformer}, and is added to the
+ * JVM's instrumentation pool via {@link Instrumentation#addTransformer(ClassFileTransformer)} by calling
+ * {@link TransformTemplate#transform(String, Class)} during agent start-up.
+ * <p>
+ * When the application starts and loads {@code HttpURLConnection}, the JVM will look for the
+ * {@code ClassFileTransformer} registered for {@code HttpURLConnection}, ultimately invoking the
+ * {@code TransformCallback} defined in this class.
  */
 public class JdkHttpPlugin implements ProfilerPlugin, TransformTemplateAware {
 
