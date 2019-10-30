@@ -50,11 +50,6 @@
             <artifactId>pinpoint-profiler-optional-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.navercorp.pinpoint</groupId>
-            <artifactId>pinpoint-profiler-optional-jdk9</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
