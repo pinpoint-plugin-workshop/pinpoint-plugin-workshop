@@ -9,6 +9,7 @@ import com.navercorp.pinpoint.bootstrap.context.TraceId;
 import com.navercorp.pinpoint.bootstrap.interceptor.AroundInterceptor;
 import com.navercorp.pinpoint.bootstrap.logging.PLogger;
 import com.navercorp.pinpoint.bootstrap.logging.PLoggerFactory;
+import com.navercorp.pinpoint.bootstrap.plugin.request.*;
 import com.navercorp.pinpoint.bootstrap.sampler.SamplingFlagUtils;
 import com.navercorp.pinpoint.common.trace.AnnotationKey;
 import com.navercorp.pinpoint.plugin.jdk.http.JdkHttpConstants;
@@ -57,9 +58,41 @@ public class HttpURLConnectionConnectInterceptor implements AroundInterceptor {
     private final TraceContext traceContext;
     private final MethodDescriptor methodDescriptor;
 
+    // ************************************
+    // Pinpoint provides 2 helper classes to help creating HTTP client plugins easier
+    // RequestTraceWriter (DefaultRequestTraceWriter) for adding Pinpoint headers to HTTP header
+    private final RequestTraceWriter<HttpURLConnection> requestTraceWriter;
+    // ClientRequestRecorder for recording http client related data (destination id, http url)
+    private final ClientRequestRecorder<HttpURLConnection> clientRequestRecorder;
+
     public HttpURLConnectionConnectInterceptor(TraceContext traceContext, MethodDescriptor methodDescriptor) {
         this.traceContext = traceContext;
         this.methodDescriptor = methodDescriptor;
+
+        // ************************************
+        // Implement ClientHeaderAdaptor<HttpURLConnection> for DefaultRequestTraceWriter
+        ClientHeaderAdaptor<HttpURLConnection> clientHeaderAdaptor = new ClientHeaderAdaptor<HttpURLConnection>() {
+            @Override
+            public void setHeader(HttpURLConnection header, String name, String value) {
+                header.setRequestProperty(name, value);
+            }
+        };
+        this.requestTraceWriter = new DefaultRequestTraceWriter<HttpURLConnection>(clientHeaderAdaptor, traceContext);
+
+        // ************************************
+        // Implement ClientRequestAdaptor<HttpURLConnection> for ClientRequestRecorder
+        ClientRequestAdaptor<HttpURLConnection> clientRequestAdaptor = new ClientRequestAdaptor<HttpURLConnection>() {
+            @Override
+            public String getDestinationId(HttpURLConnection request) {
+                return getHttpHost(request.getURL());
+            }
+
+            @Override
+            public String getUrl(HttpURLConnection request) {
+                return request.getURL().toString();
+            }
+        };
+        clientRequestRecorder = new ClientRequestRecorder<HttpURLConnection>(true, clientRequestAdaptor);
     }
 
     @Override
@@ -79,7 +112,9 @@ public class HttpURLConnectionConnectInterceptor implements AroundInterceptor {
         final HttpURLConnection request = (HttpURLConnection) target;
         if (!sampling) {
             if (request != null) {
-                request.setRequestProperty(Header.HTTP_SAMPLED.toString(), SamplingFlagUtils.SAMPLING_RATE_FALSE);
+                // ************************************
+                //request.setRequestProperty(Header.HTTP_SAMPLED.toString(), SamplingFlagUtils.SAMPLING_RATE_FALSE);
+                requestTraceWriter.write(request);
             }
             return;
         }
@@ -95,16 +130,18 @@ public class HttpURLConnectionConnectInterceptor implements AroundInterceptor {
         recorder.recordNextSpanId(nextId.getSpanId());
 
         // Add Pinpoint headers
-        request.setRequestProperty(Header.HTTP_TRACE_ID.toString(), nextId.getTransactionId());
-        request.setRequestProperty(Header.HTTP_PARENT_SPAN_ID.toString(), String.valueOf(nextId.getParentSpanId()));
-        request.setRequestProperty(Header.HTTP_SPAN_ID.toString(), String.valueOf(nextId.getSpanId()));
-        request.setRequestProperty(Header.HTTP_FLAGS.toString(), String.valueOf(nextId.getFlags()));
-
-        request.setRequestProperty(Header.HTTP_PARENT_APPLICATION_NAME.toString(), traceContext.getApplicationName());
-        request.setRequestProperty(Header.HTTP_PARENT_APPLICATION_TYPE.toString(), String.valueOf(traceContext.getServerTypeCode()));
+        // ************************************
+//        request.setRequestProperty(Header.HTTP_TRACE_ID.toString(), nextId.getTransactionId());
+//        request.setRequestProperty(Header.HTTP_PARENT_SPAN_ID.toString(), String.valueOf(nextId.getParentSpanId()));
+//        request.setRequestProperty(Header.HTTP_SPAN_ID.toString(), String.valueOf(nextId.getSpanId()));
+//        request.setRequestProperty(Header.HTTP_FLAGS.toString(), String.valueOf(nextId.getFlags()));
+//
+//        request.setRequestProperty(Header.HTTP_PARENT_APPLICATION_NAME.toString(), traceContext.getApplicationName());
+//        request.setRequestProperty(Header.HTTP_PARENT_APPLICATION_TYPE.toString(), String.valueOf(traceContext.getServerTypeCode()));
 
         final String httpHost = getHttpHost(request.getURL());
-        request.setRequestProperty(Header.HTTP_HOST.toString(), httpHost);
+//        request.setRequestProperty(Header.HTTP_HOST.toString(), httpHost);
+        requestTraceWriter.write(request, nextId, httpHost);
     }
 
     private String getHttpHost(URL url) {
@@ -135,10 +172,12 @@ public class HttpURLConnectionConnectInterceptor implements AroundInterceptor {
 
             // Record HTTP client related data (destination id, http url)
             final HttpURLConnection request = (HttpURLConnection) target;
-            final URL httpUrl = request.getURL();
-            final String httpHost = getHttpHost(httpUrl);
-            recorder.recordDestinationId(httpHost);
-            recorder.recordAttribute(AnnotationKey.HTTP_URL, httpUrl.toString());
+            // ************************************
+//            final URL httpUrl = request.getURL();
+//            final String httpHost = getHttpHost(httpUrl);
+//            recorder.recordDestinationId(httpHost);
+//            recorder.recordAttribute(AnnotationKey.HTTP_URL, httpUrl.toString());
+            clientRequestRecorder.record(recorder, request, throwable);
         } finally {
             // End trace block
             trace.traceBlockEnd();
