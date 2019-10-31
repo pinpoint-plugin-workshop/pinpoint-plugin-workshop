@@ -9,5 +9,6 @@ import java.util.UUID;
  */
 public interface PizzaCounter {
 
-    UUID waitInLine(String customerName) throws CounterClosedException;
+    UUID waitInLine(String customerName, String pizzaName) throws CounterClosedException;
+
 }

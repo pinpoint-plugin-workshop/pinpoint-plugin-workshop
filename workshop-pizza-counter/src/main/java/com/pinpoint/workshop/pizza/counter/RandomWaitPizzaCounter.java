@@ -13,7 +13,8 @@ public class RandomWaitPizzaCounter implements PizzaCounter {
     private static final long MIN_WAIT_TIME_MS = 100;
     private static final long MAX_WAIT_TIME_MS = 3000;
 
-    public UUID waitInLine(String customerName) throws CounterClosedException {
+    @Override
+    public UUID waitInLine(String customerName, String pizzaName) throws CounterClosedException {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         long waitTimeMs = random.nextLong(MAX_WAIT_TIME_MS - MIN_WAIT_TIME_MS) + MIN_WAIT_TIME_MS;
         try {
@@ -25,4 +26,5 @@ public class RandomWaitPizzaCounter implements PizzaCounter {
         }
         return UUID.randomUUID();
     }
+
 }

@@ -22,17 +22,23 @@ public class PizzaShopController {
     }
 
     @GetMapping("/orderPizza")
-    public CompletedPizzaOrder orderPizza(@RequestParam("name") String name,
+    public CompletedPizzaOrder orderPizza(@RequestParam("customerName") String customerName,
+                                          @RequestParam(value = "pizzaName", defaultValue = "potatoPizza") String pizzaName,
                                           @RequestParam("count") int count) {
-        if (StringUtils.isEmpty(name)) {
-            throw new IllegalArgumentException("name must not be empty");
+        if (StringUtils.isEmpty(customerName)) {
+            throw new IllegalArgumentException("customerName must not be empty");
         }
+        if (StringUtils.isEmpty(pizzaName)) {
+            throw new IllegalArgumentException("pizzaName must not be empty");
+        }
+
+
         if (count < 1) {
             throw new IllegalArgumentException("count must be greater than 0");
         }
         if (count > 1000) {
             throw new IllegalArgumentException("you can only order up to 1000 pizza");
         }
-        return pizzaOrderService.orderPizza(name, count);
+        return pizzaOrderService.orderPizza(customerName, pizzaName, count);
     }
 }

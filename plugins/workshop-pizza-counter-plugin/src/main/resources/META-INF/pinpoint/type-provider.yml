@@ -1,3 +1,9 @@
 serviceTypes:
     - code: 5003
       name: 'PIZZA_COUNTER'
+
+annotationKeys:
+  - code: 1002
+    name: 'workshop.pizza.counter.pizza.name'
+    property:
+      viewInRecordSet: true
