@@ -24,11 +24,11 @@ public class PizzaOrderFromCounterService implements PizzaOrderService {
     }
 
     @Override
-    public CompletedPizzaOrder orderPizza(String customerName, int orderQuantity) {
+    public CompletedPizzaOrder orderPizza(String customerName, String pizzaName, int orderQuantity) {
         try {
-            UUID orderId = pizzaCounter.waitInLine(customerName);
+            UUID orderId = pizzaCounter.waitInLine(customerName, pizzaName);
             boolean orderSuccessful = pizzaOvenRepository.placeOrder(orderId, customerName, orderQuantity);
-            return new CompletedPizzaOrder(orderId.toString(), customerName, orderQuantity, orderSuccessful);
+            return new CompletedPizzaOrder(orderId.toString(), customerName, pizzaName, orderQuantity, orderSuccessful);
         } catch (CounterClosedException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }

@@ -7,5 +7,5 @@ import com.pinpoint.workshop.pizza.shop.vo.CompletedPizzaOrder;
  */
 public interface PizzaOrderService {
 
-    CompletedPizzaOrder orderPizza(String customerName, int orderQuantity);
+    CompletedPizzaOrder orderPizza(String customerName, String pizzaName, int orderQuantity);
 }
