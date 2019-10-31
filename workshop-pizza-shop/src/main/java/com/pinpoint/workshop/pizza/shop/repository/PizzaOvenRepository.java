@@ -7,5 +7,5 @@ import java.util.UUID;
  */
 public interface PizzaOvenRepository {
 
-    boolean placeOrder(UUID orderId, String customerName, int quantity);
+    boolean placeOrder(UUID orderId, String pizzaName, int quantity);
 }
