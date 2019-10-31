@@ -8,7 +8,7 @@ import java.util.UUID;
 public class PizzaOrder {
 
     private UUID orderId;
-    private String customerName;
+    private String pizzaName;
     private Integer orderQuantity;
 
     public UUID getOrderId() {
@@ -19,12 +19,12 @@ public class PizzaOrder {
         this.orderId = orderId;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public String getPizzaName() {
+        return pizzaName;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setPizzaName(String pizzaName) {
+        this.pizzaName = pizzaName;
     }
 
     public Integer getOrderQuantity() {

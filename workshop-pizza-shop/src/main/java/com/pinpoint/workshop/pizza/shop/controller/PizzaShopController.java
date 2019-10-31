@@ -31,8 +31,6 @@ public class PizzaShopController {
         if (StringUtils.isEmpty(pizzaName)) {
             throw new IllegalArgumentException("pizzaName must not be empty");
         }
-
-
         if (count < 1) {
             throw new IllegalArgumentException("count must be greater than 0");
         }

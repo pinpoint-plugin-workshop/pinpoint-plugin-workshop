@@ -23,18 +23,18 @@ public class PizzaOvenController {
 
     @GetMapping("/cook")
     public boolean cookPizza(@RequestParam("orderId") String orderIdString,
-                             @RequestParam("customerName") String customerName,
+                             @RequestParam("pizzaName") String pizzaName,
                              @RequestParam("orderQuantity") int orderQuantity) {
         if (StringUtils.isEmpty(orderIdString)) {
             throw new IllegalArgumentException("orderId must not be empty");
         }
-        if (StringUtils.isEmpty(customerName)) {
-            throw new IllegalArgumentException("customerName must not be empty");
+        if (StringUtils.isEmpty(pizzaName)) {
+            throw new IllegalArgumentException("pizzaName must not be empty");
         }
         if (orderQuantity < 1) {
             throw new IllegalArgumentException("orderQuantity must be greater than 0");
         }
         UUID orderId = UUID.fromString(orderIdString);
-        return pizzaOvenService.processOrder(orderId, customerName, orderQuantity);
+        return pizzaOvenService.processOrder(orderId, pizzaName, orderQuantity);
     }
 }

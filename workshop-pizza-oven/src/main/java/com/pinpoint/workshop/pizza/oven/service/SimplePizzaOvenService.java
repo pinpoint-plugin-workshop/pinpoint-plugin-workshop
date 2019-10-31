@@ -26,10 +26,10 @@ public class SimplePizzaOvenService implements PizzaOvenService {
     }
 
     @Override
-    public boolean processOrder(UUID orderId, String customerName, int quantity) {
+    public boolean processOrder(UUID orderId, String pizzaName, int quantity) {
         PizzaOrder pizzaOrder = new PizzaOrder();
         pizzaOrder.setOrderId(orderId);
-        pizzaOrder.setCustomerName(customerName);
+        pizzaOrder.setPizzaName(pizzaName);
         pizzaOrder.setOrderQuantity(quantity);
         try {
             boolean orderProcessed = orderMapper.insertPizzaOrder(pizzaOrder) == 1;

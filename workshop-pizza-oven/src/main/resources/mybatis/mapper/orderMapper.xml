@@ -5,7 +5,7 @@
 <mapper namespace="com.pinpoint.workshop.pizza.oven.mapper.OrderMapper">
 
     <insert id="insertPizzaOrder" parameterType="PizzaOrder">
-INSERT INTO pizza.order (order_id, customer_name, order_quantity)
-VALUES (#{orderId}, #{customerName}, #{orderQuantity})
+INSERT INTO pizza.order (order_id, pizza_name, order_quantity)
+VALUES (#{orderId}, #{pizzaName}, #{orderQuantity})
     </insert>
 </mapper>

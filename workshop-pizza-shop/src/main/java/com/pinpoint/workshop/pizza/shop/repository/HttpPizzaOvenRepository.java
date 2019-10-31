@@ -34,14 +34,14 @@ public class HttpPizzaOvenRepository implements PizzaOvenRepository {
     }
 
     @Override
-    public boolean placeOrder(UUID orderId, String customerName, int quantity) {
+    public boolean placeOrder(UUID orderId, String pizzaName, int quantity) {
         UriComponents uriComponents = UriComponentsBuilder.newInstance()
                 .scheme("http")
                 .host(ovenHost)
                 .port(ovenPort)
                 .path("/cook")
                 .queryParam("orderId", orderId.toString())
-                .queryParam("customerName", customerName)
+                .queryParam("pizzaName", pizzaName)
                 .queryParam("orderQuantity", quantity)
                 .build();
         URI uri = uriComponents.toUri();
